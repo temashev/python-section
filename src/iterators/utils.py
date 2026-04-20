@@ -19,7 +19,7 @@ class Page:
 
 
 def request(query: Query) -> Page:
-    data = [i for i in range(0, 10)]
+    data = list(range(0, 10))
     chunks = list(batched(data, query.per_page))
     return Page(
         per_page=query.per_page,
@@ -29,8 +29,38 @@ def request(query: Query) -> Page:
 
 
 class RetrieveRemoteData:
-    pass
+    def __init__(self, per_page: int):
+        self.query = Query(per_page=per_page)
+
+    def __iter__(self):
+        current = self.query
+
+        while True:
+            page = request(current)
+
+            for i in page.results:
+                yield i
+
+            if page.next is None:
+                break
+
+            current.page = page.next
 
 
 class Fibo:
-    pass
+    def __init__(self, n: int):
+        self.stop = n
+        self.count = 0
+        self.a, self.b = 0, 1
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        if self.count >= self.stop:
+            raise StopIteration
+
+        result = self.a
+        self.a, self.b = self.b, self.a + self.b
+        self.count += 1
+        return result
